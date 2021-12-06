@@ -33,14 +33,15 @@ contract Votacion {
     event voteDone(address voter); //Indica que el votante votó
 
     modifier onlyOfficial() { //Verifica que el invocador sea el presidente
-            require(msg.sender ==ballotOfficialAddress);
-            _;    
-}
+        require(msg.sender ==ballotOfficialAddress);
+        _;    
+    }
 
-modifier inState(State _state) { //Verifica un estado
-            require(state == _state);
-            _;
-}
+	modifier inState(State _state) { //Verifica un estado
+    	require(state == _state);
+        _;
+    }
+    
     constructor( //Parámetros: nombre del presidente y texto de la propuesta
             string memory _ballotOfficialName, 
             string memory _proposal) public 
@@ -54,19 +55,19 @@ modifier inState(State _state) { //Verifica un estado
     function addVoter(address _voterAddress, string memory _voterName) public
             inState(State.Created) //Requisito: el estado de la  votación debe ser Created
             onlyOfficial //Requisito: solo el presidente puede registrar votantes
-        {
-            voter memory v; //Variable de tipo voter
-            v.voterName = _voterName; //Nombre del votante
-            v.voted = false; //Se indica que no ha votado
-            voterRegister[_voterAddress] = v; //Se lleva el votante al mapping
-            totalVoter++; //Se aumenta el número de votantes registrados
-            emit voterAdded(_voterAddress); //Se emite este evento (votante agregado)
-        } 
+    {
+		voter memory v; //Variable de tipo voter
+        v.voterName = _voterName; //Nombre del votante
+        v.voted = false; //Se indica que no ha votado
+        voterRegister[_voterAddress] = v; //Se lleva el votante al mapping
+        totalVoter++; //Se aumenta el número de votantes registrados
+        emit voterAdded(_voterAddress); //Se emite este evento (votante agregado)
+    } 
     
     function startVote() public
         inState(State.Created) //Requisito: el estado de la  votación debe ser Created
         onlyOfficial //Requisito: solo el presidente puede iniciar la votación   
-   {
+    {
         state = State.Voting; //Se pone el estado de votación en Voting    
         emit voteStarted(); //Se emite este evento (la votación comenzó)
     }   
@@ -75,26 +76,26 @@ modifier inState(State _state) { //Verifica un estado
             inState(State.Voting) //Requisito: el estado de la  votación debe ser Voting
             returns (bool voted) //Retorno de la función: true indica que
                                                 //el votante estaba inscrito y que no había votado
-        {
-            bool found = false;
-            
+    {
+    	bool found = false;
+           
         if (bytes(voterRegister[msg.sender].voterName).length != 0 
             && !voterRegister[msg.sender].voted){
-                voterRegister[msg.sender].voted = true; //Indica que el votante 
+        	voterRegister[msg.sender].voted = true; //Indica que el votante 
                                                                                         //acaba de votar
-                vote memory v; //Variable de tipo vote
-                v.voterAddress = msg.sender; //Dirección del votante
-                v.choice = _choice; //Elección del votante (o sea, su voto)
-                if (_choice){ //Verifica si el voto fue true
-                    countResult++; //Se aumenta el número de votos que han sido true
-                }
-                votes[totalVote] = v; //Se lleva el voto al mapping en la pos. totalVote
-                totalVote++; //Se aumenta el número de votos que hay hasta ahora
-                found = true; //Indica que el votante acaba de votar
+            vote memory v; //Variable de tipo vote
+            v.voterAddress = msg.sender; //Dirección del votante
+            v.choice = _choice; //Elección del votante (o sea, su voto)
+            if (_choice){ //Verifica si el voto fue true
+            	countResult++; //Se aumenta el número de votos que han sido true
             }
-            emit voteDone(msg.sender); //Se emite este evento (el votante votó)
-            return found;
+            votes[totalVote] = v; //Se lleva el voto al mapping en la pos. totalVote
+            totalVote++; //Se aumenta el número de votos que hay hasta ahora
+            found = true; //Indica que el votante acaba de votar
         }
+        emit voteDone(msg.sender); //Se emite este evento (el votante votó)
+        return found;
+    }
         
     function endVote() public
         inState(State.Voting) //Requisito: el estado de la  votación debe ser Voting
