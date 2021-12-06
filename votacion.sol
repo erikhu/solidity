@@ -1,3 +1,6 @@
+//SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.6.10 ;
+
 contract Votacion {
     struct vote{
         address voterAddress; //Dirección del votante
@@ -102,4 +105,10 @@ modifier inState(State _state) { //Verifica un estado
                       //se copian de la vble. privada countResult a la vble pública finalResult
         emit voteEnded(finalResult); //Se emite este evento (la votación finalizó)
     }
-}
+}
+
+
+
+
+
+
