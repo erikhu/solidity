@@ -19,12 +19,15 @@ contract Votacion {
     uint public finalResult = 0;
     uint public totalVoter = 0;
     uint public totalVote = 0;
-    address public ballotOfficialAddress;      
+    address public president;      
     string public ballotOfficialName;
-    string public proposal;
+    string public proposal_1;
+    string public proposal_2;
+    address public vicePresident;
     
     enum State { Created, Voting, Ended }
-    
+    enum Category { HighAgree, Agree, Neutral, Disagree, HighDisagree }
+        
     State public state;
     
     event voterAdded(address voter); //Indica que se agregó un votante
@@ -32,8 +35,8 @@ contract Votacion {
     event voteEnded(uint finalResult); //Indica que la votación finalizó                                                                  //(estado = Ended)
     event voteDone(address voter); //Indica que el votante votó
 
-    modifier onlyOfficial() { //Verifica que el invocador sea el presidente
-        require(msg.sender ==ballotOfficialAddress);
+    modifier onlyOfficial() { //Verifica que el invocador sea el presidente o vicepresidente
+        require(msg.sender == president || msg.sender == vicePresident);
         _;    
     }
 
@@ -43,12 +46,17 @@ contract Votacion {
     }
     
     constructor( //Parámetros: nombre del presidente y texto de la propuesta
-            string memory _ballotOfficialName, 
-            string memory _proposal) public 
+            string memory _ballotOfficialName,
+            address memory _vicePresident, 
+            string memory _proposal_1,
+            string memory _proposal_2) public
     {
-            ballotOfficialAddress = msg.sender; //Dirección del invocador
+            require(_vicePresident != msg.sender);
+            president = msg.sender; //Dirección del invocador
             ballotOfficialName = _ballotOfficialName; 
-            proposal = _proposal;  
+            proposal_1 = _proposal_1;
+            proposal_2 = _proposal_2;
+            vicePresident = _vicePresident;
             state = State.Created; //Se pone el estado de votación en Created
     }
 
@@ -56,6 +64,9 @@ contract Votacion {
             inState(State.Created) //Requisito: el estado de la  votación debe ser Created
             onlyOfficial //Requisito: solo el presidente puede registrar votantes
     {
+        require(vicePresident != _voterAddress);
+        require(president != _voterAddress);
+        
 		voter memory v; //Variable de tipo voter
         v.voterName = _voterName; //Nombre del votante
         v.voted = false; //Se indica que no ha votado
@@ -66,13 +77,13 @@ contract Votacion {
     
     function startVote() public
         inState(State.Created) //Requisito: el estado de la  votación debe ser Created
-        onlyOfficial //Requisito: solo el presidente puede iniciar la votación   
+        onlyOfficial //Requisito: solo el presidente o el vicepresidente pueden iniciar la votación   
     {
         state = State.Voting; //Se pone el estado de votación en Voting    
         emit voteStarted(); //Se emite este evento (la votación comenzó)
     }   
 
-    function doVote(bool _choice) public
+    function doVote(bool _choice, Category _category) public
             inState(State.Voting) //Requisito: el estado de la  votación debe ser Voting
             returns (bool voted) //Retorno de la función: true indica que
                                                 //el votante estaba inscrito y que no había votado
