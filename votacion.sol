@@ -2,9 +2,11 @@
 pragma solidity 0.6.10 ;
 
 contract Votacion {
+    enum Category { HighAgree, Agree, Neutral, Disagree, HighDisagree }
     struct vote{
         address voterAddress; //Dirección del votante
-        bool choice; //Voto: Falso o Verdadero
+        
+        Category category; //Voto: Altamente deacuerdo, Deacuerdo
     }
 
     struct voter{
@@ -26,7 +28,6 @@ contract Votacion {
     address public vicePresident;
     
     enum State { Created, Voting, Ended }
-    enum Category { HighAgree, Agree, Neutral, Disagree, HighDisagree }
         
     State public state;
     
