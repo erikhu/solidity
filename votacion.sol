@@ -2,10 +2,12 @@
 pragma solidity 0.6.10 ;
 
 contract Votacion {
-    enum Category { HighAgree, Agree, Neutral, Disagree, HighDisagree }
+    enum Category { HighDisagree, Disagree, Neutral, Agree, HighAgree }
+    
     struct vote{
         address voterAddress; //Dirección del votante
-        
+        uint counter; // contador de cuantas veces a votado
+        Proposal choice;
         Category category; //Voto: Altamente deacuerdo, Deacuerdo
     }
 
@@ -14,7 +16,7 @@ contract Votacion {
         bool voted; //Indica si ya ha votado o no
     }
     
-    mapping(uint => vote) private votes;
+    mapping(address => vote) private votes;
     mapping(address => voter) public voterRegister;
     
     uint private countResult = 0;
@@ -26,8 +28,10 @@ contract Votacion {
     string public proposal_1;
     string public proposal_2;
     address public vicePresident;
+    uint public ethers;
     
     enum State { Created, Voting, Ended }
+    enum Proposal { First, Second }
         
     State public state;
     
@@ -48,7 +52,7 @@ contract Votacion {
     
     constructor( //Parámetros: nombre del presidente y texto de la propuesta
             string memory _ballotOfficialName,
-            address memory _vicePresident, 
+            address _vicePresident, 
             string memory _proposal_1,
             string memory _proposal_2) public
     {
@@ -59,6 +63,7 @@ contract Votacion {
             proposal_2 = _proposal_2;
             vicePresident = _vicePresident;
             state = State.Created; //Se pone el estado de votación en Created
+            ethers = 0;
     }
 
     function addVoter(address _voterAddress, string memory _voterName) public
@@ -84,28 +89,37 @@ contract Votacion {
         emit voteStarted(); //Se emite este evento (la votación comenzó)
     }   
 
-    function doVote(bool _choice, Category _category) public
+    function doVote(Proposal _choice, Category _category) public payable
             inState(State.Voting) //Requisito: el estado de la  votación debe ser Voting
             returns (bool voted) //Retorno de la función: true indica que
-                                                //el votante estaba inscrito y que no había votado
+                                 //el votante estaba inscrito y que no había votado
     {
     	bool found = false;
+        vote memory v; //Variable de tipo vote
+  
            
         if (bytes(voterRegister[msg.sender].voterName).length != 0 
             && !voterRegister[msg.sender].voted){
-        	voterRegister[msg.sender].voted = true; //Indica que el votante 
-                                                                                        //acaba de votar
-            vote memory v; //Variable de tipo vote
+        	voterRegister[msg.sender].voted = true; //Indica que el votante acaba de votar
             v.voterAddress = msg.sender; //Dirección del votante
             v.choice = _choice; //Elección del votante (o sea, su voto)
-            if (_choice){ //Verifica si el voto fue true
-            	countResult++; //Se aumenta el número de votos que han sido true
-            }
-            votes[totalVote] = v; //Se lleva el voto al mapping en la pos. totalVote
+            v.category = _category;
+            v.counter = 0;
+            votes[msg.sender] = v; //Se lleva el voto al mapping en la pos. totalVote
             totalVote++; //Se aumenta el número de votos que hay hasta ahora
             found = true; //Indica que el votante acaba de votar
+            emit voteDone(msg.sender); //Se emite este evento (el votante votó)
+        } else if(msg.value == v.counter + 1) {
+            v = votes[msg.sender];
+            v.category = _category; // Actualiza a la nueva categoria
+            v.counter = v.counter + 1;
+            ethers = ethers + msg.value;
+            votes[msg.sender] = v;
+            emit voteDone(msg.sender); //Se emite este evento (el votante votó)
+        } else {
+            msg.sender.transfer(msg.value);
         }
-        emit voteDone(msg.sender); //Se emite este evento (el votante votó)
+        
         return found;
     }
         
