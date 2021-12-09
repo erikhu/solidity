@@ -163,7 +163,7 @@ contract Votacion {
             emit voteDone(msg.sender); //Se emite este evento (el votante votó)
         } else {
             v = votes[msg.sender];
-            if (msg.value == v.counter + 1000000000000000000 && _choice == v.choice) {
+            if (msg.value == ((v.counter+1) * 1000000000000000000) && _choice == v.choice) {
             	updateCounterVote(_choice, v.category, -1); // descantamos la categoria anterior
             	updateCounterVote(_choice, _category, 1); //aumentamos la nueva categoria elegida
             	v.category = _category; // Actualiza a la nueva categoria
