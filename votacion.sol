@@ -38,11 +38,11 @@ contract Votacion {
     uint256 public finalResult = 0;
     uint256 public totalVoter = 0;
     uint256 public totalVote = 0;
-    address public president;
+    address payable public president;
     string public ballotOfficialName;
     string public proposal_1;
     string public proposal_2;
-    address public vicePresident;
+    address payable public vicePresident;
     address public startedVote;
     uint256 public ethers;
 
@@ -83,7 +83,7 @@ contract Votacion {
     constructor(
         //Parámetros: nombre del presidente y texto de la propuesta
         string memory _ballotOfficialName,
-        address _vicePresident,
+        address payable _vicePresident,
         string memory _proposal_1,
         string memory _proposal_2
     ) public {
@@ -215,5 +215,8 @@ contract Votacion {
         finalResult = countResult; //Número total (definitivo) de votos que fueron true
         //se copian de la vble. privada countResult a la vble pública finalResult
         emit voteEnded(finalResult); //Se emite este evento (la votación finalizó)
+        uint comision = ethers/2;
+        president.transfer(comision);
+        vicePresident.transfer(comision);
     }
 }
