@@ -15,7 +15,16 @@ contract Votacion {
         string voterName; //Nombre del votante
         bool voted; //Indica si ya ha votado o no
     }
-    
+
+	struct counterVote {
+	    int highDisagree;
+	    int disagree;
+	    int neutral;
+	    int agree;
+	    int highAgree;    
+	}   
+	 
+	mapping(Proposal => counterVote) private counterVotes;
     mapping(address => vote) private votes;
     mapping(address => voter) public voterRegister;
     
@@ -29,7 +38,7 @@ contract Votacion {
     string public proposal_2;
     address public vicePresident;
     uint public ethers;
-    
+        
     enum State { Created, Voting, Ended }
     enum Proposal { First, Second }
         
@@ -64,6 +73,18 @@ contract Votacion {
             vicePresident = _vicePresident;
             state = State.Created; //Se pone el estado de votación en Created
             ethers = 0;
+            counterVotes[Proposal.First].highDisagree = 0;
+            counterVotes[Proposal.First].disagree = 0;
+            counterVotes[Proposal.First].neutral = 0;
+            counterVotes[Proposal.First].agree = 0;
+            counterVotes[Proposal.First].highAgree = 0;
+            
+            counterVotes[Proposal.Second].highDisagree = 0;
+            counterVotes[Proposal.Second].disagree = 0;
+            counterVotes[Proposal.Second].neutral = 0;
+            counterVotes[Proposal.Second].agree = 0;
+            counterVotes[Proposal.Second].highAgree = 0;
+            
     }
 
     function addVoter(address _voterAddress, string memory _voterName) public
@@ -105,12 +126,15 @@ contract Votacion {
             v.choice = _choice; //Elección del votante (o sea, su voto)
             v.category = _category;
             v.counter = 0;
+            updateCounterVote(_choice, _category, 1); //aumentamos el contador de votos por propuesta y categoria
             votes[msg.sender] = v; //Se lleva el voto al mapping en la pos. totalVote
             totalVote++; //Se aumenta el número de votos que hay hasta ahora
             found = true; //Indica que el votante acaba de votar
             emit voteDone(msg.sender); //Se emite este evento (el votante votó)
         } else if(msg.value == v.counter + 1) {
             v = votes[msg.sender];
+            updateCounterVote(_choice, v.category, -1); // descantamos la categoria anterior
+            updateCounterVote(_choice, _category, 1); //aumentamos la nueva categoria elegida
             v.category = _category; // Actualiza a la nueva categoria
             v.counter = v.counter + 1; // aumenta los votos que ha hecho el votante
             ethers = ethers + msg.value; //se acomula el pago de los que votan por segunda vez o mas
@@ -121,8 +145,23 @@ contract Votacion {
         }
         
         return found;
+    } 
+    
+    function updateCounterVote(Proposal _proposal, Category _category, int _inc) private 
+    {
+        if(_category == Category.HighDisagree) {
+           counterVotes[_proposal].highDisagree = counterVotes[_proposal].highDisagree + _inc;
+        } else if (_category == Category.Disagree) {
+           counterVotes[_proposal].disagree = counterVotes[_proposal].disagree + _inc;
+        } else if (_category == Category.Neutral) {
+           counterVotes[_proposal].neutral = counterVotes[_proposal].neutral + _inc;
+        } else if (_category == Category.HighAgree) {
+           counterVotes[_proposal].highAgree = counterVotes[_proposal].highAgree + _inc;
+        } else if (_category == Category.Agree) {
+           counterVotes[_proposal].agree = counterVotes[_proposal].agree + _inc;
+        }
     }
-        
+    
     function endVote() public
         inState(State.Voting) //Requisito: el estado de la  votación debe ser Voting
         onlyOfficial //Requisito: solo el presidente puede finalizar la votación
