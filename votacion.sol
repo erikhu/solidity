@@ -30,7 +30,7 @@ contract Votacion {
         int256 highAgree;
     }
 
-    mapping(Proposal => counterVote) private counterVotes;
+    mapping(Proposal => counterVote) public counterVotes;
     mapping(address => vote) private votes;
     mapping(address => voter) public voterRegister;
 
@@ -168,7 +168,7 @@ contract Votacion {
             	updateCounterVote(_choice, _category, 1); //aumentamos la nueva categoria elegida
             	v.category = _category; // Actualiza a la nueva categoria
             	v.counter = v.counter + 1; // aumenta los votos que ha hecho el votante
-           	    ethers = ethers + msg.value; //se acomula el pago de los que votan por segunda vez o mas
+           	 ethers = ethers + msg.value; //se acomula el pago de los que votan por segunda vez o mas
             	votes[msg.sender] = v; // se actualiza el voto
             	emit voteDone(msg.sender); //Se emite este evento (el votante votó)
         	} else {
