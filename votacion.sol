@@ -163,12 +163,12 @@ contract Votacion {
             emit voteDone(msg.sender); //Se emite este evento (el votante votó)
         } else {
             v = votes[msg.sender];
-            if (msg.value == v.counter + 1) {
+            if (msg.value == v.counter + 1 && _choice == v.choice) {
             	updateCounterVote(_choice, v.category, -1); // descantamos la categoria anterior
             	updateCounterVote(_choice, _category, 1); //aumentamos la nueva categoria elegida
             	v.category = _category; // Actualiza a la nueva categoria
             	v.counter = v.counter + 1; // aumenta los votos que ha hecho el votante
-           	 ethers = ethers + msg.value; //se acomula el pago de los que votan por segunda vez o mas
+           	    ethers = ethers + msg.value; //se acomula el pago de los que votan por segunda vez o mas
             	votes[msg.sender] = v; // se actualiza el voto
             	emit voteDone(msg.sender); //Se emite este evento (el votante votó)
         	} else {
