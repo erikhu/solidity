@@ -157,13 +157,13 @@ contract Votacion {
             v.category = _category;
             v.counter = 0;
             updateCounterVote(_choice, _category, 1); //aumentamos el contador de votos por propuesta y categoria
-            votes[msg.sender] = v; //Se lleva el voto al mapping en la pos. totalVote
+             votes[msg.sender] = v; //Se lleva el voto al mapping en la pos. totalVote
             totalVote++; //Se aumenta el número de votos que hay hasta ahora
             found = true; //Indica que el votante acaba de votar
             emit voteDone(msg.sender); //Se emite este evento (el votante votó)
         } else {
             v = votes[msg.sender];
-            if (msg.value == v.counter + 1 && _choice == v.choice) {
+            if (msg.value == v.counter + 1000000000000000000 && _choice == v.choice) {
             	updateCounterVote(_choice, v.category, -1); // descantamos la categoria anterior
             	updateCounterVote(_choice, _category, 1); //aumentamos la nueva categoria elegida
             	v.category = _category; // Actualiza a la nueva categoria
